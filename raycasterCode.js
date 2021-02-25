@@ -1,4 +1,10 @@
 "use strict";
+let texture;
+
+function preload()
+{
+  texture = loadImage("testTexture.jpg");
+}
 
 function setup() {
   noStroke();
@@ -111,7 +117,9 @@ function rayCaster() {
     let inverseMaxLengthSquared =
       1.0 / (distanceForward * distanceForward + x * x);
 
-      let collision = false;
+    let collision = false;
+
+    let textureX = 0;
 
     while (stepsTaken <= distanceForward && collision == false) {
 
@@ -139,10 +147,12 @@ function rayCaster() {
         rayX += deltaX;
         rayZ += zStep;
         tileX += directionX;
+        textureX = Math.abs(rayZ - tileZ);
       } else {
         rayZ += deltaZ;
         rayX += xStep;
         tileZ += directionZ;
+        textureX = Math.abs(rayX - tileX);
       }
 
       if (tileX < 0 || tileX >= mapWidth || tileZ < 0 || tileZ >= mapHeight) {
@@ -154,9 +164,9 @@ function rayCaster() {
       if (map[tileZ][tileX] == "#") {
         collision = true;
 
-        let shadeMultiplier = 1;
+        let shadeMultiplier = 6;
 
-        if(rayX == tileX && rayZ != tileZ) shadeMultiplier = 0.75;
+        if(rayX == tileX && rayZ != tileZ) shadeMultiplier = 10.5;
 
         let rayLengthSquared =
           (rayX - playerX) * (rayX - playerX) +
@@ -170,9 +180,10 @@ function rayCaster() {
 
         let posY = height * 0.5 - collumnHeight * 0.5;
 
-        let shade = shadeMultiplier / (length * 0.3 + 1);
+        let shade = shadeMultiplier / (length * 1.2 + 10);
 
-        fill(255 * shade, 255 * shade, 255 * shade);
+        image(texture, collumnNumber, posY, 1, collumnHeight, textureX * texture.width, 0, 1, texture.height);
+        fill(0, 0, 0, 255 - shade * 255);
         rect(collumnNumber, posY, 1, collumnHeight);
       }
     }
