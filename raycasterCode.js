@@ -6,12 +6,14 @@ function preload()
   texture = loadImage("testTexture.jpg");
 }
 
-function setup() {
+function setup()
+{
   noStroke();
   createCanvas(800, 400);
 }
 
-function draw() {
+function draw()
+{
   background(0);
   controls();
   rayCaster();
@@ -51,25 +53,26 @@ let map = [
   ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#"]
 ];
 
-function controls() {
+function controls()
+{
   let speed = deltaTime / 1000 * 3;
 
-  if(keyIsDown(87))
+  if(keyIsDown(87)) //if W is held down
   {
     playerX += Math.cos(playerAngle) * speed;
     playerZ += Math.sin(playerAngle) * speed;
   }
-  if(keyIsDown(65))
+  if(keyIsDown(65)) // if A is held down
   {
     playerX += Math.sin(playerAngle) * speed;
     playerZ -= Math.cos(playerAngle) * speed;
   }
-  if(keyIsDown(83))
+  if(keyIsDown(83)) // if S is held down
   {
     playerX -= Math.cos(playerAngle) * speed;
     playerZ -= Math.sin(playerAngle) * speed;
   }
-  if(keyIsDown(68))
+  if(keyIsDown(68)) // if D is held down
   {
     playerX -= Math.sin(playerAngle) * speed;
     playerZ += Math.cos(playerAngle) * speed;
@@ -83,9 +86,73 @@ function controls() {
   {
     playerAngle -= speed;
   }
+
+  collisionResolving();
 }
 
-function rayCaster() {
+function collisionResolving()
+{
+  //this function uses the circle vs rectangle collision algorithm to resolve collisions
+  let sideRadius = 0.2;
+  let adjustedSideRadius = sideRadius - 0.01;
+
+  let tileX;
+	let tileZ;
+
+	for (let i = 0; i < 8; i++)
+	{
+		switch (i)
+		{
+      case 0: tileX = Math.floor(playerX); tileZ = Math.floor(playerZ) - 1; break;
+      case 1: tileX = Math.floor(playerX); tileZ = Math.floor(playerZ) + 1; break;
+      case 2: tileX = Math.floor(playerX) - 1; tileZ = Math.floor(playerZ); break;
+      case 3: tileX = Math.floor(playerX) + 1; tileZ = Math.floor(playerZ); break;
+      case 4: tileX = Math.floor(playerX) - 1; tileZ = Math.floor(playerZ) - 1; break;
+      case 5: tileX = Math.floor(playerX) - 1; tileZ = Math.floor(playerZ) + 1; break;
+      case 6: tileX = Math.floor(playerX) + 1; tileZ = Math.floor(playerZ) - 1; break;
+      case 7: tileX = Math.floor(playerX) + 1; tileZ = Math.floor(playerZ) + 1; break;
+	  }
+
+		if (tileX >= 0 && tileX < mapWidth && tileZ >= 0 && tileZ < mapHeight)
+		{
+			if (map[tileZ][tileX] == "#")
+			{
+				let distanceToWallX = Math.abs(clamp(playerX, tileX, tileX + 1) - playerX);
+				let distanceToWallZ = Math.abs(clamp(playerZ, tileZ, tileZ + 1) - playerZ);
+
+				if (i <= 3 && distanceToWallX < sideRadius)
+				{
+					let directionX = tileX - Math.floor(playerX);
+					playerX += (distanceToWallX - sideRadius) * directionX;
+				}
+				if (i <= 3 && distanceToWallZ < sideRadius)
+				{
+					let directionZ = tileZ - Math.floor(playerZ);
+					playerZ += (distanceToWallZ - sideRadius) * directionZ;
+				}
+				if (i > 3 && distanceToWallX < adjustedSideRadius && distanceToWallZ < adjustedSideRadius)
+				{
+					let directionX = tileX - Math.floor(playerX);
+					let directionZ = tileZ - Math.floor(playerZ);
+
+					if(distanceToWallX > distanceToWallZ) { 
+            playerX += (distanceToWallX - adjustedSideRadius) * directionX;
+          } else {
+            playerZ += (distanceToWallZ - adjustedSideRadius) * directionZ;
+					}
+				}
+			}
+		}
+  }
+}
+
+function clamp(value, lower, upper)
+{
+  return Math.max(lower, Math.min(upper, value));
+}
+
+function rayCaster()
+{
   let angle = 3.141592 / 4;
   let distanceForward = 40;
   let rayBound = Math.tan(angle) * distanceForward;
@@ -96,7 +163,8 @@ function rayCaster() {
 
   let collumnNumber = 0;
 
-  for (let x = -rayBound; x <= rayBound; x += increment) {
+  for (let x = -rayBound; x <= rayBound; x += increment)
+  {
     let rotatedX = cosAngle * distanceForward - sinAngle * x;
     let rotatedZ = sinAngle * distanceForward + cosAngle * x;
 
@@ -113,7 +181,8 @@ function rayCaster() {
     let directionZ = rotatedZ / Math.abs(rotatedZ);
 
     let stepsTaken = 0;
-
+    
+    //lol
     let inverseMaxLengthSquared =
       1.0 / (distanceForward * distanceForward + x * x);
 
@@ -121,12 +190,12 @@ function rayCaster() {
 
     let textureX = 0;
 
-    while (stepsTaken <= distanceForward && collision == false) {
+    let deltaX = 0;
+    let deltaZ = 0;
 
+    while (stepsTaken <= distanceForward && collision == false)
+    {
       stepsTaken += 1;
-
-      let deltaX = 0;
-      let deltaZ = 0;
 
       if (directionX == 1) {
         deltaX = tileX + directionX - rayX;
@@ -147,31 +216,38 @@ function rayCaster() {
         rayX += deltaX;
         rayZ += zStep;
         tileX += directionX;
-        textureX = Math.abs(rayZ - tileZ);
+        //this line of code looks like this to make sure
+        //that the texture is always going in the same direction on each face of a block
+        textureX = (directionX == -1) + directionX * (rayZ - tileZ);
       } else {
         rayZ += deltaZ;
         rayX += xStep;
         tileZ += directionZ;
-        textureX = Math.abs(rayX - tileX);
+        //this line of code looks like this to make sure
+        //that the texture is always going in the same direction on each face of a block
+        textureX = (directionZ == 1) - directionZ * (rayX - tileX);
       }
 
-      if (tileX < 0 || tileX >= mapWidth || tileZ < 0 || tileZ >= mapHeight) {
+      if (tileX < 0 || tileX >= mapWidth || tileZ < 0 || tileZ >= mapHeight)
+      {
         break;
       }
 
       let length = 0;
 
-      if (map[tileZ][tileX] == "#") {
+      if (map[tileZ][tileX] == "#")
+      {
         collision = true;
 
-        let shadeMultiplier = 6;
+        let shadeAdder = 1;
 
-        if(rayX == tileX && rayZ != tileZ) shadeMultiplier = 10.5;
+        if(rayX == tileX && rayZ != tileZ) shadeAdder = 3;
 
         let rayLengthSquared =
           (rayX - playerX) * (rayX - playerX) +
           (rayZ - playerZ) * (rayZ - playerZ);
 
+        //this looks like a mess and is a mess. Although it avoids one more sqrt calculation.
         length = Math.sqrt(
           (rayLengthSquared - rayLengthSquared * inverseMaxLengthSquared * x * x)
         );
@@ -180,7 +256,7 @@ function rayCaster() {
 
         let posY = height * 0.5 - collumnHeight * 0.5;
 
-        let shade = shadeMultiplier / (length * 1.2 + 10);
+        let shade = 1 / (length * 0.3 + shadeAdder);
 
         image(texture, collumnNumber, posY, 1, collumnHeight, textureX * texture.width, 0, 1, texture.height);
         fill(0, 0, 0, 255 - shade * 255);
