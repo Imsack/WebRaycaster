@@ -264,5 +264,10 @@ function rayCaster()
       }
     }
     collumnNumber += 1;
+    //todo list:
+    //make the screendimensions more intelligent
+    //add background image behind screen
+    //some menu thing
+    //gradients because gradients cool
   }
 }
