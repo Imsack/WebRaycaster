@@ -1,12 +1,42 @@
 body {
     padding: 0;
     margin: 0;
+    overflow-x: hidden;
 }
 
 main {
+    height: 85vh;
     width: 100vw;
-    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
+header {
+    display: grid;
+    grid-template-columns: 17vw 66vw 17vw;
+    background: linear-gradient(to right, rgb(145, 145, 145), rgb(105, 105, 105));
+    height: 15vh;
+    width: 100vw;
+}
+
+h1 {
+    margin: auto;
+}
+
+#controls {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+#controls p {
+    background: linear-gradient(to right, rgb(255, 109, 41), rgb(255, 163, 24));
+    color: rgb(255, 251, 0);
+    border-radius: 0.5em;
+    border: 3px solid rgb(71, 71, 71);
+    max-height: 8ch;
+    max-width: 12ch;
+    padding: 1em;
+    margin: 0;
+  }
